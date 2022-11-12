@@ -2,11 +2,16 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\EncryptCookies;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -18,6 +23,7 @@ class RouteServiceProvider extends ServiceProvider
      * @var string
      */
     public const HOME = '/home';
+    protected $namespace = 'App\Http\Controllers';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -26,15 +32,21 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->configureRateLimiting();
+        parent::boot();
+    }
 
-        $this->routes(function () {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
+    public function map()
+    {
+        $this->mapAuthRoutes();
+    }
 
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
+    public function mapAuthRoutes()
+    {
+        Route::group([
+          'prefix' => 'auth/',
+            'namespace' => $this->namespace . '\Authenticacion'
+        ], function ($router) {
+            require base_path('routes/auth.php');
         });
     }
 
